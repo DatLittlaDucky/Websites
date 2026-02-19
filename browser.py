@@ -1,5 +1,6 @@
 import sys
 import re
+import traceback
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QToolBar, QLineEdit, QPushButton,
     QTabWidget, QWidget, QVBoxLayout, QHBoxLayout, QLabel
@@ -8,11 +9,11 @@ from PyQt6.QtCore import QUrl
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtWebEngineCore import QWebEnginePage
 
-
 # ----------------------------
 # CONFIG
 # ----------------------------
 GITHUB_BASE = "https://datlittladucky.github.io/Websites/"
+START_PAGE = f"{GITHUB_BASE}index.html"
 
 # ----------------------------
 # VALIDATION
@@ -79,8 +80,8 @@ class BrowserTab(QWidget):
         self.layout.setContentsMargins(0, 0, 0, 0)
 
         self.browser = QWebEngineView()
-        self.page = CustomWebEnginePage(self.browser)
-        self.browser.setPage(self.page)
+        QApplication.processEvents()  # ensure engine is initialized
+        self.browser.setPage(CustomWebEnginePage(self.browser))
 
         # Virtual URL storage
         self.browser.virtual_url = ""
@@ -112,7 +113,7 @@ class BrowserTab(QWidget):
         if not success:
             self.show_custom_404("Page failed to load")
             return
-        # Extra: Detect GitHub Pages 404 by title
+        # Detect GitHub Pages 404 by title
         self.browser.page().runJavaScript(
             "document.title", self.check_title_for_404
         )
@@ -207,20 +208,22 @@ class MiniBrowser(QMainWindow):
         # New tab button
         self.new_tab_btn = QPushButton("+")
         self.new_tab_btn.setFixedWidth(30)
-        self.new_tab_btn.clicked.connect(self.add_tab)
+        self.new_tab_btn.clicked.connect(lambda: self.add_tab(start_url=START_PAGE))
         toolbar.addWidget(self.new_tab_btn)
 
-        # Start with one tab
-        self.add_tab()
+        # Start with one tab and load start page
+        self.add_tab(start_url=START_PAGE)
 
     # ----------------------------
     def current_browser(self):
         return self.tabs.currentWidget().browser
 
-    def add_tab(self):
+    def add_tab(self, start_url=None):
         new_tab = BrowserTab(self.tabs)
         index = self.tabs.addTab(new_tab, "New Tab")
         self.tabs.setCurrentIndex(index)
+        if start_url:
+            new_tab.browser.setUrl(QUrl(start_url))
 
     def close_tab(self, index):
         if self.tabs.count() > 1:
@@ -228,7 +231,12 @@ class MiniBrowser(QMainWindow):
 
     # ----------------------------
     def load_page(self):
-        user_input = self.url_bar.text()
+        user_input = self.url_bar.text().strip()
+
+        # Special case for start page
+        if user_input.lower() in ["start", "websites/start"]:
+            self.current_browser().setUrl(QUrl(START_PAGE))
+            return
 
         if not validate_input(user_input):
             self.current_tab().show_custom_404("Invalid domain format")
@@ -240,7 +248,7 @@ class MiniBrowser(QMainWindow):
             target_url = f"{GITHUB_BASE}{domain}/{subpath}.html"
             virtual_url = f"{domain}/{subpath}"
         else:
-            target_url = f"{GITHUB_BASE}{domain}/"
+            target_url = f"{GITHUB_BASE}{domain}/index.html"
             virtual_url = domain
 
         browser = self.current_browser()
@@ -257,6 +265,14 @@ class MiniBrowser(QMainWindow):
 
     def current_tab(self):
         return self.tabs.currentWidget()
+
+# ----------------------------
+# GLOBAL EXCEPTION HOOK
+# ----------------------------
+def handle_exceptions(exctype, value, tb):
+    print("ERROR:", ''.join(traceback.format_exception(exctype, value, tb)))
+
+sys.excepthook = handle_exceptions
 
 # ----------------------------
 # RUN
