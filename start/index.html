@@ -86,16 +86,23 @@
     </div>
 
     <script>
-        function go() {
-            const input = document.getElementById("search").value;
-            if (!input) return;
+    function go() {
+        const input = document.getElementById("search").value.trim();
+        if (!input) return;
 
-            window.location.href = "https://" + input;
+        let url = input;
+
+        // If user didn't type https://, add it
+        if (!url.startsWith("http")) {
+            url = "https://" + url;
         }
 
-        function goTo(domain) {
-            window.location.href = "https://" + domain;
-        }
+        window.location.href = url;
+    }
+
+    function goTo(domain) {
+        window.location.href = "https://" + domain;
+    }
     </script>
 
 </body>
