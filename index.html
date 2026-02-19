@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Websites</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            margin: 0;
+            background: #0f0f0f;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        h1 {
+            font-size: 48px;
+            margin-bottom: 30px;
+        }
+
+        .search-box {
+            width: 500px;
+            max-width: 90%;
+            padding: 15px;
+            font-size: 18px;
+            border-radius: 25px;
+            border: none;
+            outline: none;
+            background: #1e1e1e;
+            color: white;
+            text-align: center;
+        }
+
+        .links {
+            margin-top: 40px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 20px;
+            width: 500px;
+            max-width: 90%;
+        }
+
+        .card {
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .card:hover {
+            background: #2a2a2a;
+            transform: scale(1.05);
+        }
+
+        .card span {
+            display: block;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #ccc;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Websites</h1>
+
+    <input 
+        class="search-box" 
+        placeholder="Enter a domain (example.com)"
+        onkeydown="if(event.key==='Enter'){go();}"
+        id="search"
+    >
+
+    <div class="links">
+        <div class="card" onclick="goTo('example.com')">
+            🌐
+            <span>example.com</span>
+        </div>
+
+        <div class="card" onclick="goTo('test.org')">
+            🧪
+            <span>test.org</span>
+        </div>
+
+        <div class="card" onclick="goTo('cool.co.uk')">
+            🇬🇧
+            <span>cool.co.uk</span>
+        </div>
+    </div>
+
+    <script>
+        function go() {
+            const input = document.getElementById("search").value;
+            if (!input) return;
+
+            window.location.href = "https://" + input;
+        }
+
+        function goTo(domain) {
+            window.location.href = "https://" + domain;
+        }
+    </script>
+
+</body>
+</html>
