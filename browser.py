@@ -13,7 +13,7 @@ from PyQt6.QtWebEngineCore import QWebEnginePage
 # CONFIG
 # ----------------------------
 GITHUB_BASE = "https://datlittladucky.github.io/Websites/"
-START_PAGE = f"{GITHUB_BASE}index.html"
+START_PAGE = f"{GITHUB_BASE}start/index.html"
 
 # ----------------------------
 # VALIDATION
@@ -42,30 +42,29 @@ class CustomWebEnginePage(QWebEnginePage):
     def acceptNavigationRequest(self, url, nav_type, is_main_frame):
         url_str = url.toString()
 
-        # Allow internal GitHub Pages
+        # Allow internal GitHub pages
         if url_str.startswith(GITHUB_BASE):
             return True
 
-        # Rewrite external links to internal virtual system
-        domain_match = re.match(r"https?://([a-zA-Z0-9\-\.]+)(/.*)?", url_str)
-        if domain_match:
-            domain = domain_match.group(1)
-            path = domain_match.group(2) if domain_match.group(2) else ""
+        # Catch ANY https://example.com style navigation
+        match = re.match(r"https?://(.+)", url_str)
+        if match:
+            user_input = match.group(1)
 
-            if validate_input(domain + path):
-                domain, subpath = parse_input(domain + path)
+            if validate_input(user_input):
+                domain, subpath = parse_input(user_input)
+
                 if subpath:
                     new_url = f"{GITHUB_BASE}{domain}/{subpath}.html"
                     virtual_url = f"{domain}/{subpath}"
                 else:
-                    new_url = f"{GITHUB_BASE}{domain}/"
+                    new_url = f"{GITHUB_BASE}{domain}/index.html"
                     virtual_url = domain
 
                 self.browser_instance.virtual_url = virtual_url
                 self.browser_instance.setUrl(QUrl(new_url))
                 return False
 
-        # Block everything else
         return False
 
 # ----------------------------
